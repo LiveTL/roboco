@@ -8,7 +8,7 @@ async def on_ready():
 @client.event
 async def on_reaction_add(reaction: Reaction, user: User):
     print(reaction.emoji)
-    if reaction.emoji == reaction.emoji:
+    if reaction.emoji == '📌':
         print('send')
 
 client.run(open('clientsecret.txt').read())
