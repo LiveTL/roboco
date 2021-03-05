@@ -3,7 +3,6 @@ import json
 from typing import Set
 
 import discord
-from discord import message
 
 from util import *
 
