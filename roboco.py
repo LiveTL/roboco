@@ -1,4 +1,3 @@
-from typing import List
 import discord
 
 client = discord.Client(intents=discord.Intents.all())
@@ -18,15 +17,15 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
             for x in reaction.message.attachments[::-1]:
                 if x.filename.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.gifv')):
                     sendEmbed.set_image(url=x.url)
-            await client.get_channel(709079297813512205).send(embed=sendEmbed)
+            await client.get_channel(796900918901080085).send(embed=sendEmbed)
         else:
             await reaction.message.channel.send("You don't have the proper role to pin that message")
 
 async def userHasPin(reaction: discord.Reaction):
     for x in await reaction.users().flatten():
         for y in reaction.message.guild.get_member(x.id).roles:
-            if y.name.lower() == 'pin':
+            if y.name.lower() == 'pinner':
                 return True
-    return False            
+    return False
 
 client.run(open('clientsecret.txt').read())
