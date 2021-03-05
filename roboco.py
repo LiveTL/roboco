@@ -18,15 +18,15 @@ with open("channels.txt", "r") as fin:
 def save_pin_roles(new_pin_roles):
     global pin_roles
     pin_roles = new_pin_roles
-    with open("roles.txt", "w+") as fout:
-        json.dump(pin_roles, fout)
+    with open("roles.txt", "w") as fout:
+        json.dump(list(pin_roles), fout)
 
 
 def save_invisible_channels(new_invisible):
     global invisible_channels
     invisible_channels = new_invisible
     with open("channels.txt", "w") as fout:
-        json.dump(invisible_channels, fout)
+        json.dump(list(invisible_channels), fout)
 
 
 @client.event
@@ -35,7 +35,7 @@ async def on_ready():
 
 
 @register_command("queryc")
-async def on_queryc(message):
+async def on_queryc(message, message_content):
     await message.channel.send(
         "Channels the bot can't see: "
         + str([message.guild.get_channel(x).name for x in invisible_channels])
@@ -43,14 +43,14 @@ async def on_queryc(message):
 
 
 @register_command("query")
-async def on_query(message):
+async def on_query(message, message_content):
     await message.channel.send(
         "Roles who can pin: " + str([message.guild.get_role(x).name for x in pin_roles])
     )
 
 
 @register_command("forcopy")
-async def on_forcopy(message):
+async def on_forcopy(message, message_content):
     await message.channel.send(f"ids: {' '.join(map(str, pin_roles))}")
 
 
@@ -65,7 +65,7 @@ async def on_pingset(message, message_content):
 @register_command("set")
 @needs_contributor
 async def on_set(message, message_content):
-    save_pin_roles({int(x) for x in message_content[5:].split(" ")})
+    save_pin_roles({int(x) for x in message_content[4:].split(" ")})
 
 
 @register_command("channelm")
@@ -135,10 +135,6 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
             await reaction.message.channel.send(
                 "You don't have the proper role to pin that message"
             )
-
-
-async def is_contributor(user: discord.Member):
-    return any(x.name.lower() == "contributor" for x in user.roles)
 
 
 async def user_has_pin(reaction: discord.Reaction):

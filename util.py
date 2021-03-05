@@ -41,3 +41,6 @@ def needs_contributor(func):
             await kwargs["message"].channel.send("nice try")
 
     return inner
+
+async def is_contributor(user):
+    return any(x.name.lower() == "contributor" for x in user.roles)
