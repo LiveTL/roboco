@@ -1,8 +1,10 @@
+import asyncio
 import json
-from pathlib import Path
 from typing import Set
 
 import discord
+
+from util import *
 
 client = discord.Client(intents=discord.Intents.all())
 
@@ -13,12 +15,16 @@ with open("channels.txt", "r") as fin:
     invisible_channels: Set[int] = set(json.load(fin))
 
 
-def save_pin_roles():
+def save_pin_roles(new_pin_roles):
+    global pin_roles
+    pin_roles = new_pin_roles
     with open("roles.txt", "w+") as fout:
         json.dump(pin_roles, fout)
 
 
-def save_invisible_channels():
+def save_invisible_channels(new_invisible):
+    global invisible_channels
+    invisible_channels = new_invisible
     with open("channels.txt", "w") as fout:
         json.dump(invisible_channels, fout)
 
@@ -28,65 +34,81 @@ async def on_ready():
     print("We have logged in as", client.user)
 
 
+@register_command("queryc")
+async def on_queryc(message):
+    await message.channel.send(
+        "Channels the bot can't see: "
+        + str([message.guild.get_channel(x).name for x in invisible_channels])
+    )
+
+
+@register_command("query")
+async def on_query(message):
+    await message.channel.send(
+        "Roles who can pin: " + str([message.guild.get_role(x).name for x in pin_roles])
+    )
+
+
+@register_command("forcopy")
+async def on_forcopy(message):
+    await message.channel.send(f"ids: {' '.join(map(str, pin_roles))}")
+
+
+@register_command("pingset")
+@needs_contributor
+async def on_pingset(message, message_content):
+    save_pin_roles(
+        {int("".join(filter(str.isdigit, x))) for x in message_content[9:].split(" ")}
+    )
+
+
+@register_command("set")
+@needs_contributor
+async def on_set(message, message_content):
+    save_pin_roles({int(x) for x in message_content[5:].split(" ")})
+
+
+@register_command("channelm")
+@needs_contributor
+async def on_channelm(message, message_content):
+    save_invisible_channels(
+        {
+            int("".join(y for y in x if y.isdigit()))
+            for x in message_content[10:].split(" ")
+        }
+    )
+
+
+@register_command("channel")
+async def on_channel(message, message_content):
+    if await is_contributor(message.author):
+        save_invisible_channels(set(map(int, message_content[8:].split(" "))))
+    else:
+        await message.channel.send("nice try")
+
+
+@register_command(None)
+async def on_default(message):
+    await message.channel.send("syntax error")
+
+
 @client.event
 async def on_message(message: discord.Message):
-    global pin_roles, invisible_channels
-    if message.author == client.user:
+    if (
+        message.author == client.user
+        or message.channel.id in invisible_channels
+        or not message.content.startswith(".rbc")
+    ):
         return
-    if message.channel.id not in invisible_channels:
-        message_content = message.content
-        if message_content.startswith(".rbc"):
-            message_content = message_content[5:]
-            print(message_content)
-            if message_content.startswith("queryc"):
-                await message.channel.send(
-                    "Channels the bot can't see: "
-                    + str(
-                        [
-                            message.guild.get_channel(x).name
-                            for x in invisible_channels
-                        ]
-                    )
-                )
-            elif message_content.startswith("query"):
-                await message.channel.send(
-                    "Roles who can pin: "
-                    + str([message.guild.get_role(x).name for x in pin_roles])
-                )
-            elif message_content.startswith("forcopy"):
-                await message.channel.send(f"ids: {' '.join(map(str, pin_roles))}")
-            elif message_content.startswith("pingset"):
-                if await is_contributor(message.author):
-                    pin_roles = {
-                        int("".join(filter(str.isdigit, x)))
-                        for x in message_content[9:].split(" ")
-                    }
-                    save_pin_roles()
-                else:
-                    await message.channel.send("nice try")
-            elif message_content.startswith("set"):
-                if await is_contributor(message.author):
-                    pin_roles = {int(x) for x in message_content[5:].split(" ")}
-                    save_pin_roles()
-                else:
-                    await message.channel.send("nice try")
-            elif message_content.startswith("channelm"):
-                if await is_contributor(message.author):
-                    invisible_channels = {
-                        int("".join(y for y in x if y.isdigit()))
-                        for x in message_content[10:].split(" ")
-                    }
-                    save_invisible_channels()
-            elif message_content.startswith("channel"):
-                if await is_contributor(message.author):
-                    invisible_channels = set(
-                        map(int, message_content[8:].split(" "))
-                    )
-                    save_invisible_channels()
-                else:
-                    await message.channel.send("nice try")
-            else:
-                await message.channel.send("syntax error")
+    message_content = message.content[5:]
+    print(message_content)
+    command = command_starts_with(message_content)
+    await asyncio.gather(
+        *(
+            callback(message=message, message_content=message_content)
+            for callback in commands[command]
+        )
+    )
 
 
 @client.event
