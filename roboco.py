@@ -3,6 +3,7 @@ import json
 from typing import Set
 
 import discord
+from discord import message
 
 from util import *
 
@@ -117,7 +118,7 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
     global kalm_moments
     print(reaction.emoji)
     if reaction.emoji == "📌":
-        if await user_has_pin(reaction):
+        if await any_reaction_pinners(reaction):
             if not any((x.embeds[0].author.url if len(x.embeds) > 0 else None) == reaction.message.jump_url for x in await kalm_moments.history().flatten()):
                 send_embed = discord.Embed(timestamp=reaction.message.created_at)
                 if not reaction.message.reference:
@@ -128,13 +129,13 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
                     )
                     send_embed.add_field(
                         name=f"#{reaction.message.channel.name}",
-                        value=reaction.message.content,
+                        value=f"[{reaction.message.content}]({reaction.message.jump_url})",
                         inline=False,
                     )
                 else:
                     send_embed.set_author(
                         name="multiple people",
-                        url=reaction.message.jump_url
+                        url=reaction.message.jump_url,
                     )
                     send_embed.add_field(
                         name=f"#{reaction.message.channel.name}",
@@ -148,25 +149,41 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
                     ):
                         send_embed.set_image(url=x.url)
                 await kalm_moments.send(embed=send_embed)
+                messageEmbed = discord.Embed()
+                messageEmbed.set_author(
+                    name=client.user.name,
+                    icon_url=client.user.avatar_url,
+                )
+                messageEmbed.add_field(
+                    name="📌",
+                    value=f"{(await first_pinner(reaction)).display_name} has pinned a [message]({reaction.message.jump_url}) to #{kalm_moments.name}.",
+                    inline=False,
+                )
+                await reaction.message.channel.send(embed=messageEmbed)
         else:
             await reaction.message.channel.send(
                 "You don't have the proper role to pin that message"
             )
 
 async def add_replies_to_embed(embed: discord.Embed, message: discord.Message, depth: int, channel: discord.TextChannel):
-    if not message.reference or depth > 24:
+    if not message or depth > 24:
         return
-    await add_replies_to_embed(embed, await channel.fetch_message(message.reference.message_id), depth+1, channel)
+    if message.reference:
+        await add_replies_to_embed(embed, await channel.fetch_message(message.reference.message_id), depth+1, channel)
     embed.add_field(
         name=message.author.display_name,
         value=f"[{message.content}]({message.jump_url})",
         inline=False,
     )
 
-async def user_has_pin(reaction: discord.Reaction):
-    return any(
-        y.id in pin_roles for x in await reaction.users().flatten() for y in x.roles
-    )
+async def any_reaction_pinners(reaction: discord.Reaction) -> bool:
+    return any((user_has_pin(x)) for x in (await reaction.users().flatten()))
+
+async def first_pinner(reaction: discord.Reaction) -> discord.Member:
+    return next((x for x in (await reaction.users().flatten()) if user_has_pin(x)))
+
+def user_has_pin(user: discord.Member) -> bool:
+    return any(y.id in pin_roles for y in user.roles)
 
 
 with open("clientsecret.txt", "r") as fin:
