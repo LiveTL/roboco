@@ -1,7 +1,7 @@
 from typing import List
 import discord
 
-client = discord.Client(Intents=discord.Intents(reactions=True))
+client = discord.Client(intents=discord.Intents.all())
 
 @client.event
 async def on_ready():
@@ -23,9 +23,8 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
             await reaction.message.channel.send("You don't have the proper role to pin that message")
 
 async def userHasPin(reaction: discord.Reaction):
-    ListOfUsers: List[discord.Member] = await reaction.users().flatten()
-    for x in ListOfUsers:
-        for y in x.roles:
+    for x in await reaction.users().flatten():
+        for y in reaction.message.guild.get_member(x.id).roles:
             if y.name.lower() == 'pin':
                 return True
     return False            
