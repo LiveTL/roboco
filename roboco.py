@@ -1,93 +1,99 @@
+import json
 from pathlib import Path
-from typing import List
+from typing import Set
 
 import discord
 
 client = discord.Client(intents=discord.Intents.all())
-pinRoles: List[int] = eval(Path("roles.txt").read_text())
-invisibleChannels: List[int] = eval(Path("channels.txt").read_text())
+
+with open("roles.txt", "r") as fin:
+    pin_roles: Set[int] = set(json.load(fin))
+
+with open("channels.txt", "r") as fin:
+    invisible_channels: Set[int] = set(json.load(fin))
+
+
+def save_pin_roles():
+    with open("roles.txt", "w+") as fout:
+        json.dump(pin_roles, fout)
+
+
+def save_invisible_channels():
+    with open("channels.txt", "w") as fout:
+        json.dump(invisible_channels, fout)
 
 
 @client.event
 async def on_ready():
-    print("We have logged in as {0.user}".format(client))
+    print("We have logged in as", client.user)
 
 
 @client.event
 async def on_message(message: discord.Message):
-    global pinRoles, invisibleChannels
-    if message.author != client.user:
-        if message.channel.id not in invisibleChannels:
-            messageContent = message.content
-            if messageContent.startswith(".rbc"):
-                messageContent = messageContent[5:]
-                print(messageContent)
-                if messageContent.startswith("queryc"):
-                    await message.channel.send(
-                        "Channels the bot can't see: "
-                        + str(
-                            [
-                                message.guild.get_channel(x).name
-                                for x in invisibleChannels
-                            ]
-                        )
-                    )
-                elif messageContent.startswith("query"):
-                    await message.channel.send(
-                        "Roles who can pin: "
-                        + str([message.guild.get_role(x).name for x in pinRoles])
-                    )
-                elif messageContent.startswith("forcopy"):
-                    await message.channel.send(
-                        "ids: " + " ".join(str(x) for x in pinRoles)
-                    )
-                elif messageContent.startswith("pingset"):
-                    if await isContributor(message.author):
-                        pinRoles = [
-                            int("".join(y for y in x if y.isdigit()))
-                            for x in messageContent[9:].split(" ")
+    global pin_roles, invisible_channels
+    if message.author == client.user:
+        return
+    if message.channel.id not in invisible_channels:
+        message_content = message.content
+        if message_content.startswith(".rbc"):
+            message_content = message_content[5:]
+            print(message_content)
+            if message_content.startswith("queryc"):
+                await message.channel.send(
+                    "Channels the bot can't see: "
+                    + str(
+                        [
+                            message.guild.get_channel(x).name
+                            for x in invisible_channels
                         ]
-                        roleFile = open("roles.txt", "w")
-                        roleFile.write(str(pinRoles))
-                        roleFile.close()
-                    else:
-                        await message.channel.send("nice try")
-                elif messageContent.startswith("set"):
-                    if await isContributor(message.author):
-                        pinRoles = [int(x) for x in messageContent[5:].split(" ")]
-                        roleFile = open("roles.txt", "w")
-                        roleFile.write(str(pinRoles))
-                        roleFile.close()
-                    else:
-                        await message.channel.send("nice try")
-                elif messageContent.startswith("channelm"):
-                    if await isContributor(message.author):
-                        invisibleChannels = [
-                            int("".join(y for y in x if y.isdigit()))
-                            for x in messageContent[10:].split(" ")
-                        ]
-                        channelFile = open("channels.txt", "w")
-                        channelFile.write(str(invisibleChannels))
-                        channelFile.close()
-                elif messageContent.startswith("channel"):
-                    if await isContributor(message.author):
-                        invisibleChannels = [
-                            int(x) for x in messageContent[8:].split(" ")
-                        ]
-                        channelFile = open("channels.txt", "w")
-                        channelFile.write(str(invisibleChannels))
-                        channelFile.close()
-                    else:
-                        await message.channel.send("nice try")
+                    )
+                )
+            elif message_content.startswith("query"):
+                await message.channel.send(
+                    "Roles who can pin: "
+                    + str([message.guild.get_role(x).name for x in pin_roles])
+                )
+            elif message_content.startswith("forcopy"):
+                await message.channel.send(f"ids: {' '.join(map(str, pin_roles))}")
+            elif message_content.startswith("pingset"):
+                if await is_contributor(message.author):
+                    pin_roles = {
+                        int("".join(filter(str.isdigit, x)))
+                        for x in message_content[9:].split(" ")
+                    }
+                    save_pin_roles()
                 else:
-                    await message.channel.send("syntax error")
+                    await message.channel.send("nice try")
+            elif message_content.startswith("set"):
+                if await is_contributor(message.author):
+                    pin_roles = {int(x) for x in message_content[5:].split(" ")}
+                    save_pin_roles()
+                else:
+                    await message.channel.send("nice try")
+            elif message_content.startswith("channelm"):
+                if await is_contributor(message.author):
+                    invisible_channels = {
+                        int("".join(y for y in x if y.isdigit()))
+                        for x in message_content[10:].split(" ")
+                    }
+                    save_invisible_channels()
+            elif message_content.startswith("channel"):
+                if await is_contributor(message.author):
+                    invisible_channels = set(
+                        map(int, message_content[8:].split(" "))
+                    )
+                    save_invisible_channels()
+                else:
+                    await message.channel.send("nice try")
+            else:
+                await message.channel.send("syntax error")
 
 
 @client.event
 async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
     print(reaction.emoji)
     if reaction.emoji == "📌":
-        if await userHasPin(reaction):
+        if await user_has_pin(reaction):
             sendEmbed = discord.Embed(timestamp=reaction.message.created_at)
             sendEmbed.set_author(
                 name=reaction.message.author.display_name,
@@ -95,11 +101,11 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
                 icon_url=reaction.message.author.avatar_url,
             )
             sendEmbed.add_field(
-                name="#" + reaction.message.channel.name,
+                name=f"#{reaction.message.channel.name}",
                 value=reaction.message.content,
                 inline=False,
             )
-            for x in reaction.message.attachments[::-1]:
+            for x in reversed(reaction.message.attachments):
                 if x.filename.lower().endswith(
                     (".jpg", ".jpeg", ".png", ".gif", ".gifv")
                 ):
@@ -111,14 +117,15 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
             )
 
 
-async def isContributor(user: discord.Member):
+async def is_contributor(user: discord.Member):
     return any(x.name.lower() == "contributor" for x in user.roles)
 
 
-async def userHasPin(reaction: discord.Reaction):
+async def user_has_pin(reaction: discord.Reaction):
     return any(
-        y.id in pinRoles for x in await reaction.users().flatten() for y in x.roles
+        y.id in pin_roles for x in await reaction.users().flatten() for y in x.roles
     )
 
 
-client.run(open("clientsecret.txt").read())
+with open("clientsecret.txt", "r") as fin:
+    client.run(fin.read())
