@@ -119,50 +119,49 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
     if reaction.emoji == "📌":
         if await user_has_pin(reaction):
             if not any((x.embeds[0].author.url if len(x.embeds) > 0 else None) == reaction.message.jump_url for x in await kalm_moments.history().flatten()):
-                sendEmbed = discord.Embed(timestamp=reaction.message.created_at)
+                send_embed = discord.Embed(timestamp=reaction.message.created_at)
                 if not reaction.message.reference:
-                    sendEmbed.set_author(
+                    send_embed.set_author(
                         name=reaction.message.author.display_name,
                         url=reaction.message.jump_url,
                         icon_url=reaction.message.author.avatar_url,
                     )
-                    sendEmbed.add_field(
+                    send_embed.add_field(
                         name=f"#{reaction.message.channel.name}",
                         value=reaction.message.content,
                         inline=False,
                     )
                 else:
-                    referencedMessage = await reaction.message.channel.fetch_message(reaction.message.reference.message_id)
-                    sendEmbed.set_author(
+                    send_embed.set_author(
                         name="multiple people",
                         url=reaction.message.jump_url
                     )
-                    sendEmbed.add_field(
+                    send_embed.add_field(
                         name=f"#{reaction.message.channel.name}",
                         value="multiple messages",
                         inline=False,
                     )
-                    sendEmbed.add_field(
-                        name=referencedMessage.author.display_name,
-                        value=f"[{referencedMessage.content}]({referencedMessage.jump_url})",
-                        inline=False,
-                    )
-                    sendEmbed.add_field(
-                        name=reaction.message.author.display_name,
-                        value=f"[{reaction.message.content}]({reaction.message.jump_url})",
-                        inline=False,
-                    )
+                    await add_replies_to_embed(send_embed, reaction.message, 1, reaction.message.channel)
                 for x in reversed(reaction.message.attachments):
                     if x.filename.lower().endswith(
                         (".jpg", ".jpeg", ".png", ".gif", ".gifv")
                     ):
-                        sendEmbed.set_image(url=x.url)
-                await kalm_moments.send(embed=sendEmbed)
+                        send_embed.set_image(url=x.url)
+                await kalm_moments.send(embed=send_embed)
         else:
             await reaction.message.channel.send(
                 "You don't have the proper role to pin that message"
             )
 
+async def add_replies_to_embed(embed: discord.Embed, message: discord.Message, depth: int, channel: discord.TextChannel):
+    if not message.reference or depth > 24:
+        return
+    await add_replies_to_embed(embed, await channel.fetch_message(message.reference.message_id), depth+1, channel)
+    embed.add_field(
+        name=message.author.display_name,
+        value=f"[{message.content}]({message.jump_url})",
+        inline=False,
+    )
 
 async def user_has_pin(reaction: discord.Reaction):
     return any(
