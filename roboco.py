@@ -7,6 +7,7 @@ import discord
 from util import *
 
 client = discord.Client(intents=discord.Intents.all())
+kalm_moments = None
 
 with open("roles.txt", "r") as fin:
     pin_roles: Set[int] = set(json.load(fin))
@@ -31,7 +32,9 @@ def save_invisible_channels(new_invisible):
 
 @client.event
 async def on_ready():
+    global kalm_moments
     print("We have logged in as", client.user)
+    kalm_moments = client.get_channel(796900918901080085)
 
 
 @register_command("queryc")
@@ -111,27 +114,50 @@ async def on_message(message: discord.Message):
 
 @client.event
 async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
+    global kalm_moments
     print(reaction.emoji)
     if reaction.emoji == "📌":
         if await user_has_pin(reaction):
-            if not any((x.embeds[0].author.url if len(x.embeds) > 0 else None) == reaction.message.jump_url for x in await client.get_channel(796900918901080085).history().flatten()):
+            if not any((x.embeds[0].author.url if len(x.embeds) > 0 else None) == reaction.message.jump_url for x in await kalm_moments.history().flatten()):
                 sendEmbed = discord.Embed(timestamp=reaction.message.created_at)
-                sendEmbed.set_author(
-                    name=reaction.message.author.display_name,
-                    url=reaction.message.jump_url,
-                    icon_url=reaction.message.author.avatar_url,
-                )
-                sendEmbed.add_field(
-                    name=f"#{reaction.message.channel.name}",
-                    value=reaction.message.content,
-                    inline=False,
-                )
+                if not reaction.message.reference:
+                    sendEmbed.set_author(
+                        name=reaction.message.author.display_name,
+                        url=reaction.message.jump_url,
+                        icon_url=reaction.message.author.avatar_url,
+                    )
+                    sendEmbed.add_field(
+                        name=f"#{reaction.message.channel.name}",
+                        value=reaction.message.content,
+                        inline=False,
+                    )
+                else:
+                    referencedMessage = await reaction.message.channel.fetch_message(reaction.message.reference.message_id)
+                    sendEmbed.set_author(
+                        name="multiple people",
+                        url=reaction.message.jump_url
+                    )
+                    sendEmbed.add_field(
+                        name=f"#{reaction.message.channel.name}",
+                        value="multiple messages",
+                        inline=False,
+                    )
+                    sendEmbed.add_field(
+                        name=referencedMessage.author.display_name,
+                        value=f"[{referencedMessage.content}]({referencedMessage.jump_url})",
+                        inline=False,
+                    )
+                    sendEmbed.add_field(
+                        name=reaction.message.author.display_name,
+                        value=f"[{reaction.message.content}]({reaction.message.jump_url})",
+                        inline=False,
+                    )
                 for x in reversed(reaction.message.attachments):
                     if x.filename.lower().endswith(
                         (".jpg", ".jpeg", ".png", ".gif", ".gifv")
                     ):
                         sendEmbed.set_image(url=x.url)
-                await client.get_channel(796900918901080085).send(embed=sendEmbed)
+                await kalm_moments.send(embed=sendEmbed)
         else:
             await reaction.message.channel.send(
                 "You don't have the proper role to pin that message"
