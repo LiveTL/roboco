@@ -114,23 +114,24 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
     print(reaction.emoji)
     if reaction.emoji == "📌":
         if await user_has_pin(reaction):
-            sendEmbed = discord.Embed(timestamp=reaction.message.created_at)
-            sendEmbed.set_author(
-                name=reaction.message.author.display_name,
-                url=reaction.message.jump_url,
-                icon_url=reaction.message.author.avatar_url,
-            )
-            sendEmbed.add_field(
-                name=f"#{reaction.message.channel.name}",
-                value=reaction.message.content,
-                inline=False,
-            )
-            for x in reversed(reaction.message.attachments):
-                if x.filename.lower().endswith(
-                    (".jpg", ".jpeg", ".png", ".gif", ".gifv")
-                ):
-                    sendEmbed.set_image(url=x.url)
-            await client.get_channel(796900918901080085).send(embed=sendEmbed)
+            if not any((x.embeds[0].author.url if len(x.embeds) > 0 else None) == reaction.message.jump_url for x in await client.get_channel(796900918901080085).history().flatten()):
+                sendEmbed = discord.Embed(timestamp=reaction.message.created_at)
+                sendEmbed.set_author(
+                    name=reaction.message.author.display_name,
+                    url=reaction.message.jump_url,
+                    icon_url=reaction.message.author.avatar_url,
+                )
+                sendEmbed.add_field(
+                    name=f"#{reaction.message.channel.name}",
+                    value=reaction.message.content,
+                    inline=False,
+                )
+                for x in reversed(reaction.message.attachments):
+                    if x.filename.lower().endswith(
+                        (".jpg", ".jpeg", ".png", ".gif", ".gifv")
+                    ):
+                        sendEmbed.set_image(url=x.url)
+                await client.get_channel(796900918901080085).send(embed=sendEmbed)
         else:
             await reaction.message.channel.send(
                 "You don't have the proper role to pin that message"
