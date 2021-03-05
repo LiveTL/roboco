@@ -80,11 +80,9 @@ async def on_channelm(message, message_content):
 
 
 @register_command("channel")
+@needs_contributor
 async def on_channel(message, message_content):
-    if await is_contributor(message.author):
-        save_invisible_channels(set(map(int, message_content[8:].split(" "))))
-    else:
-        await message.channel.send("nice try")
+    save_invisible_channels(set(map(int, message_content[8:].split(" "))))
 
 
 @register_command(None)
