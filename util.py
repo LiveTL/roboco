@@ -9,6 +9,8 @@ commands = {
     "set": [],
     "channelm": [],
     "channel": [],
+    "clip": [],
+    "onii-chan": [],
     None: [],
 }
 
