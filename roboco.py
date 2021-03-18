@@ -19,7 +19,7 @@ with open("roles.txt", "r") as fin:
 with open("channels.txt", "r") as fin:
     invisible_channels: Set[int] = set(json.load(fin))
 
-with open("oniichan.txt", "r", encoding='utf-8') as fin:
+with open("oniichan.txt", "r", encoding="utf-8") as fin:
     onii_chan = fin.read()
 
 def save_pin_roles(new_pin_roles):
@@ -110,7 +110,10 @@ async def on_clip(message: discord.Message, message_content: str):
 
 @register_command("onii-chan")
 async def on_oniichan(message: discord.Message, message_content: str):
-    await message.channel.send(onii_chan)
+    if message.channel.is_nsfw():
+        await message.channel.send(onii_chan)
+    else:
+        await message.channel.send("oi what you tryna do")
 
 @register_command(None)
 async def on_default(message: discord.Message):
@@ -140,11 +143,58 @@ async def on_message(message: discord.Message):
 async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
     global kalm_moments
     print(reaction.emoji)
-    if reaction.emoji == "📌":
-        if await any_reaction_pinners(reaction):
-            if not any((x.embeds[0].author.url if len(x.embeds) > 0 else None) == reaction.message.jump_url for x in await kalm_moments.history().flatten()):
-                send_embed = discord.Embed(timestamp=reaction.message.created_at)
-                if not reaction.message.reference:
+    if not reaction.message.channel.is_nsfw():
+        if reaction.emoji == "📌":
+            if await any_reaction_pinners(reaction):
+                if not any((x.embeds[0].author.url if len(x.embeds) > 0 else None) == reaction.message.jump_url for x in await kalm_moments.history().flatten()):
+                    send_embed = discord.Embed(timestamp=reaction.message.created_at)
+                    if not reaction.message.reference:
+                        send_embed.set_author(
+                            name=reaction.message.author.display_name,
+                            url=reaction.message.jump_url,
+                            icon_url=reaction.message.author.avatar_url,
+                        )
+                        send_embed.add_field(
+                            name=f"#{reaction.message.channel.name}",
+                            value=f"[{reaction.message.content}]({reaction.message.jump_url})",
+                            inline=False,
+                        )
+                    else:
+                        send_embed.set_author(
+                            name="multiple people",
+                            url=reaction.message.jump_url,
+                        )
+                        send_embed.add_field(
+                            name=f"#{reaction.message.channel.name}",
+                            value="multiple messages",
+                            inline=False,
+                        )
+                        await add_replies_to_embed(send_embed, reaction.message, 1, reaction.message.channel)
+                    for x in reversed(reaction.message.attachments):
+                        if x.filename.lower().endswith(
+                            (".jpg", ".jpeg", ".png", ".gif", ".gifv")
+                        ):
+                            send_embed.set_image(url=x.url)
+                    await kalm_moments.send(embed=send_embed)
+                    message_embed = discord.Embed()
+                    message_embed.set_author(
+                        name=client.user.name,
+                        icon_url=client.user.avatar_url,
+                    )
+                    message_embed.add_field(
+                        name="📌",
+                        value=f"{(await first_pinner(reaction)).display_name} has pinned a [message]({reaction.message.jump_url}) to #{kalm_moments.name}.",
+                        inline=False,
+                    )
+                    await reaction.message.channel.send(embed=message_embed)
+            else:
+                await reaction.message.channel.send(
+                    "You don't have the proper role to pin that message"
+                )
+        elif reaction.emoji == "📍":
+            if await any_reaction_pinners(reaction):
+                if not any((x.embeds[0].author.url if len(x.embeds) > 0 else None) == reaction.message.jump_url for x in await kalm_moments.history().flatten()):
+                    send_embed = discord.Embed(timestamp=reaction.message.created_at)
                     send_embed.set_author(
                         name=reaction.message.author.display_name,
                         url=reaction.message.jump_url,
@@ -155,73 +205,29 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
                         value=f"[{reaction.message.content}]({reaction.message.jump_url})",
                         inline=False,
                     )
-                else:
-                    send_embed.set_author(
-                        name="multiple people",
-                        url=reaction.message.jump_url,
+                    for x in reversed(reaction.message.attachments):
+                        if x.filename.lower().endswith(
+                            (".jpg", ".jpeg", ".png", ".gif", ".gifv")
+                        ):
+                            send_embed.set_image(url=x.url)
+                    await kalm_moments.send(embed=send_embed)
+                    message_embed = discord.Embed()
+                    message_embed.set_author(
+                        name=client.user.name,
+                        icon_url=client.user.avatar_url,
                     )
-                    send_embed.add_field(
-                        name=f"#{reaction.message.channel.name}",
-                        value="multiple messages",
+                    message_embed.add_field(
+                        name="📍",
+                        value=f"{(await first_pinner(reaction)).display_name} has pinned a [message]({reaction.message.jump_url}) to #{kalm_moments.name}.",
                         inline=False,
                     )
-                    await add_replies_to_embed(send_embed, reaction.message, 1, reaction.message.channel)
-                for x in reversed(reaction.message.attachments):
-                    if x.filename.lower().endswith(
-                        (".jpg", ".jpeg", ".png", ".gif", ".gifv")
-                    ):
-                        send_embed.set_image(url=x.url)
-                await kalm_moments.send(embed=send_embed)
-                message_embed = discord.Embed()
-                message_embed.set_author(
-                    name=client.user.name,
-                    icon_url=client.user.avatar_url,
+                    await reaction.message.channel.send(embed=message_embed)
+            else:
+                await reaction.message.channel.send(
+                    "You don't have the proper role to pin that message"
                 )
-                message_embed.add_field(
-                    name="📌",
-                    value=f"{(await first_pinner(reaction)).display_name} has pinned a [message]({reaction.message.jump_url}) to #{kalm_moments.name}.",
-                    inline=False,
-                )
-                await reaction.message.channel.send(embed=message_embed)
-        else:
-            await reaction.message.channel.send(
-                "You don't have the proper role to pin that message"
-            )
-    elif reaction.emoji == "📍":
-        if await any_reaction_pinners(reaction):
-            if not any((x.embeds[0].author.url if len(x.embeds) > 0 else None) == reaction.message.jump_url for x in await kalm_moments.history().flatten()):
-                send_embed = discord.Embed(timestamp=reaction.message.created_at)
-                send_embed.set_author(
-                    name=reaction.message.author.display_name,
-                    url=reaction.message.jump_url,
-                    icon_url=reaction.message.author.avatar_url,
-                )
-                send_embed.add_field(
-                    name=f"#{reaction.message.channel.name}",
-                    value=f"[{reaction.message.content}]({reaction.message.jump_url})",
-                    inline=False,
-                )
-                for x in reversed(reaction.message.attachments):
-                    if x.filename.lower().endswith(
-                        (".jpg", ".jpeg", ".png", ".gif", ".gifv")
-                    ):
-                        send_embed.set_image(url=x.url)
-                await kalm_moments.send(embed=send_embed)
-                message_embed = discord.Embed()
-                message_embed.set_author(
-                    name=client.user.name,
-                    icon_url=client.user.avatar_url,
-                )
-                message_embed.add_field(
-                    name="📍",
-                    value=f"{(await first_pinner(reaction)).display_name} has pinned a [message]({reaction.message.jump_url}) to #{kalm_moments.name}.",
-                    inline=False,
-                )
-                await reaction.message.channel.send(embed=message_embed)
-        else:
-            await reaction.message.channel.send(
-                "You don't have the proper role to pin that message"
-            )
+    else:
+        await reaction.message.channel.send("no pinning in nsfw channels. bad")
 
 async def add_replies_to_embed(embed: discord.Embed, message: discord.Message, depth: int, channel: discord.TextChannel):
     if not message or depth > 24:
