@@ -143,8 +143,8 @@ async def on_message(message: discord.Message):
 async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
     global kalm_moments
     print(reaction.emoji)
-    if not reaction.message.channel.is_nsfw():
-        if reaction.emoji == "📌":
+    if reaction.emoji == "📌":
+        if not reaction.message.channel.is_nsfw():
             if await any_reaction_pinners(reaction):
                 if not any((x.embeds[0].author.url if len(x.embeds) > 0 else None) == reaction.message.jump_url for x in await kalm_moments.history().flatten()):
                     send_embed = discord.Embed(timestamp=reaction.message.created_at)
@@ -191,7 +191,10 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
                 await reaction.message.channel.send(
                     "You don't have the proper role to pin that message"
                 )
-        elif reaction.emoji == "📍":
+        else:
+            await reaction.message.channel.send("no pinning in nsfw channels. bad")
+    elif reaction.emoji == "📍":
+        if not reaction.message.channel.is_nsfw():
             if await any_reaction_pinners(reaction):
                 if not any((x.embeds[0].author.url if len(x.embeds) > 0 else None) == reaction.message.jump_url for x in await kalm_moments.history().flatten()):
                     send_embed = discord.Embed(timestamp=reaction.message.created_at)
@@ -226,8 +229,8 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
                 await reaction.message.channel.send(
                     "You don't have the proper role to pin that message"
                 )
-    else:
-        await reaction.message.channel.send("no pinning in nsfw channels. bad")
+        else:
+            await reaction.message.channel.send("no pinning in nsfw channels. bad")
 
 async def add_replies_to_embed(embed: discord.Embed, message: discord.Message, depth: int, channel: discord.TextChannel):
     if not message or depth > 24:
