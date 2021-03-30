@@ -26,16 +26,20 @@ react with the pin emoji (📌)
 
 default prefix: `.rbc`
 
-`set`(contributor): set roles that are able to ping, with ids, seperated by spaces
+`channel`(contributor): set blacklisted channels with ids seperated by spaces
+
+`channelm`(contributor): set blacklisted channels with mentions
+
+`clip`: send request to clip video
+
+`forcopy`: get role ids that are able to ping, for copying into set
+
+`help`: get help
 
 `pingset`(contributor): same as set but with role mentions instead of role ids
 
 `query`: see list of roles that are able to ping
 
-`forcopy`: get role ids that are able to ping, for copying into set
-
-`channel`(contributor): set blacklisted channels with ids seperated by spaces
-
-`channelm`(contributor): set blacklisted channels with mentions
-
 `queryc`: see list of blacklisted channels
+
+`set`(contributor): set roles that are able to ping, with ids, seperated by spaces
