@@ -98,7 +98,7 @@ async def on_channel(message: discord.Message, message_content: str):
 @register_command("clip")
 async def on_clip(message: discord.Message, message_content: str):
     things = message_content[5:].split(' ')
-    send_message_content = f"Request from {message.author} to clip https://youtube.com/watch?v={things[0]}/ "
+    send_message_content = f"Request from {message.author} to clip {things[0]}"
     things.pop(0)
     if len(things) > 0:
         if timestamp_match.match(things[0]):
@@ -106,7 +106,7 @@ async def on_clip(message: discord.Message, message_content: str):
             things.pop(0)
         if len(things) > 0:
             send_message_content += "\nbecause " + ' '.join(x for x in things)
-    await message.channel.send(send_message_content)
+    await clip_request.send(send_message_content)
 
 @register_command("onii-chan")
 async def on_oniichan(message: discord.Message, message_content: str):
