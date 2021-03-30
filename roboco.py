@@ -1,7 +1,7 @@
 import asyncio
 import json
 import re
-from typing import Dict, Set, Union
+from typing import Dict, Set, Union, List
 
 import discord
 
@@ -12,6 +12,7 @@ timestamp_match = re.compile(r'\d\d:\d\d:\d\d|\d\d:\d\d')
 kalm_moments: discord.TextChannel
 clip_request: discord.TextChannel
 onii_chan: str
+help_file: str
 
 with open("roles.txt", "r") as fin:
     pin_roles: Set[int] = set(json.load(fin))
@@ -21,6 +22,14 @@ with open("channels.txt", "r") as fin:
 
 with open("oniichan.txt", "r", encoding="utf-8") as fin:
     onii_chan = fin.read()
+
+with open("README.md", "r") as fin:
+    help_file_list = fin.read().splitlines()
+    for i, v in enumerate(help_file_list):
+        if v == "## Commmands":
+            help_file_list = help_file_list[i:]
+            break
+    help_file = "\n".join(x for x in help_file_list)
 
 def save_pin_roles(new_pin_roles):
     global pin_roles
@@ -58,6 +67,9 @@ async def on_query(message: discord.Message, message_content: str):
         "Roles who can pin: " + str([message.guild.get_role(x).name for x in pin_roles])
     )
 
+@register_command("help")
+async def on_help(message: discord.Message, message_content: str):
+    await message.channel.send(f"{help_file}")
 
 @register_command("forcopy")
 async def on_forcopy(message: discord.Message, message_content: str):
