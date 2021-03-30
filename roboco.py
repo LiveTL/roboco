@@ -47,7 +47,7 @@ def save_invisible_channels(new_invisible):
 
 @client.event
 async def on_ready():
-    global kalm_moments
+    global kalm_moments, clip_request
     print("We have logged in as", client.user)
     kalm_moments = client.get_channel(796900918901080085)
     clip_request = client.get_channel(820547559319273473)
