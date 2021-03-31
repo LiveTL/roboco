@@ -108,6 +108,7 @@ async def on_channel(message: discord.Message, message_content: str):
 
 
 @register_command("clip")
+@needs_clip_requester
 async def on_clip(message: discord.Message, message_content: str):
     things = message_content[5:].split(' ')
     send_message_content = f"Request from {message.author} to clip {things[0]}"
