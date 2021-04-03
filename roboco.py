@@ -266,5 +266,6 @@ def user_has_pin(user: discord.Member) -> bool:
     return any(y.id in pin_roles for y in user.roles)
 
 
-with open("clientsecret.txt", "r") as fin:
-    client.run(fin.read())
+if __name__ == "__main__":
+    with open("clientsecret.txt", "r") as fin:
+        client.run(fin.read())
