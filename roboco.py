@@ -1,4 +1,5 @@
 import asyncio
+from asyncio.tasks import sleep
 import json
 import re
 from typing import Dict, Set, Union, List
@@ -44,6 +45,11 @@ def save_invisible_channels(new_invisible):
     invisible_channels = new_invisible
     with open("channels.txt", "w") as fout:
         json.dump(list(invisible_channels), fout)
+
+
+async def wait_delete(message: discord.Message, time = 1):
+    await sleep(time)
+    await message.delete()
 
 
 @client.event
@@ -139,7 +145,7 @@ async def on_default(message: discord.Message):
 async def on_message(message: discord.Message):
     if (message.channel.id == nice_channel.id):
         if message.content.lower() not in ['', 'nice']:
-            await message.delete()
+            await wait_delete(message)
         return
     if (
         message.author == client.user
