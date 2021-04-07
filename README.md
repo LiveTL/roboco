@@ -16,6 +16,11 @@ put your pin channel id in `kalm_moments` in `on_ready`
 
 run `roboco.py`
 
+## Nice Channel
+
+set nice channel in the nice_channel variable
+the bot will delete any message that isn't either empty or 'nice'
+
 ## Pinning
 
 whoever has the role that is able to pin is able to pin
