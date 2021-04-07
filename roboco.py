@@ -11,6 +11,7 @@ client = discord.Client(intents=discord.Intents.all())
 timestamp_match = re.compile(r'\d\d:\d\d:\d\d|\d\d:\d\d')
 kalm_moments: discord.TextChannel
 clip_request: discord.TextChannel
+nice_channel: discord.TextChannel
 onii_chan: str
 help_file: str
 
@@ -47,10 +48,11 @@ def save_invisible_channels(new_invisible):
 
 @client.event
 async def on_ready():
-    global kalm_moments, clip_request
+    global kalm_moments, clip_request, nice_channel
     print("We have logged in as", client.user)
     kalm_moments = client.get_channel(796900918901080085)
     clip_request = client.get_channel(820547559319273473)
+    nice_channel = client.get_channel(829385883735556108)
 
 
 @register_command("queryc")
@@ -135,6 +137,10 @@ async def on_default(message: discord.Message):
 
 @client.event
 async def on_message(message: discord.Message):
+    if (message.channel.id == nice_channel.id):
+        if message.content.lower() not in ['', 'nice']:
+            await message.delete()
+        return
     if (
         message.author == client.user
         or message.channel.id in invisible_channels
