@@ -16,15 +16,6 @@ nice_channel: discord.TextChannel
 onii_chan: str
 help_file: str
 
-with open("roles.txt", "r") as fin:
-    pin_roles: Set[int] = set(json.load(fin))
-
-with open("channels.txt", "r") as fin:
-    invisible_channels: Set[int] = set(json.load(fin))
-
-with open("oniichan.txt", "r", encoding="utf-8") as fin:
-    onii_chan = fin.read()
-
 with open("README.md", "r") as fin:
     help_file_list = fin.read().splitlines()
     for i, v in enumerate(help_file_list):
@@ -283,5 +274,14 @@ def user_has_pin(user: discord.Member) -> bool:
 
 
 if __name__ == "__main__":
+    with open("roles.txt", "r") as fin:
+        pin_roles: Set[int] = set(json.load(fin))
+
+    with open("channels.txt", "r") as fin:
+        invisible_channels: Set[int] = set(json.load(fin))
+
+    with open("oniichan.txt", "r", encoding="utf-8") as fin:
+        onii_chan = fin.read()
+
     with open("clientsecret.txt", "r") as fin:
         client.run(fin.read())
