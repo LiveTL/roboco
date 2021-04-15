@@ -179,41 +179,41 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
                     send_embed = discord.Embed(timestamp=reaction.message.created_at)
                     if not reaction.message.reference:
                         send_embed.set_author(
-                            name=reaction.message.author.display_name,
-                            url=reaction.message.jump_url,
-                            icon_url=reaction.message.author.avatar_url,
+                            reaction.message.author.display_name,
+                            reaction.message.jump_url,
+                            reaction.message.author.avatar_url,
                         )
                         send_embed.add_field(
-                            name=f"#{reaction.message.channel.name}",
-                            value=f"[{reaction.message.content}]({reaction.message.jump_url})",
-                            inline=False,
+                            f"#{reaction.message.channel.name}",
+                            f"[{reaction.message.content}]({reaction.message.jump_url})",
+                            False,
                         )
                     else:
                         send_embed.set_author(
-                            name="multiple people",
-                            url=reaction.message.jump_url,
+                            "multiple people",
+                            reaction.message.jump_url,
                         )
                         send_embed.add_field(
-                            name=f"#{reaction.message.channel.name}",
-                            value="multiple messages",
-                            inline=False,
+                            f"#{reaction.message.channel.name}",
+                            "multiple messages",
+                            False,
                         )
                         await add_replies_to_embed(send_embed, reaction.message, 1, reaction.message.channel)
                     for x in reversed(reaction.message.attachments):
                         if x.filename.lower().endswith(
                             (".jpg", ".jpeg", ".png", ".gif", ".gifv")
                         ):
-                            send_embed.set_image(url=x.url)
+                            send_embed.set_image(x.url)
                     await kalm_moments.send(embed=send_embed)
                     message_embed = discord.Embed()
                     message_embed.set_author(
-                        name=client.user.name,
-                        icon_url=client.user.avatar_url,
+                        client.user.name,
+                        icon_url = client.user.avatar_url,
                     )
                     message_embed.add_field(
-                        name="📌",
-                        value=f"{(await first_pinner(reaction)).display_name} has pinned a [message]({reaction.message.jump_url}) to #{kalm_moments.name}.",
-                        inline=False,
+                        "📌",
+                        f"{(await first_pinner(reaction)).display_name} has pinned a [message]({reaction.message.jump_url}) to #{kalm_moments.name}.",
+                        False,
                     )
                     await reaction.message.channel.send(embed=message_embed)
             else:
@@ -228,30 +228,30 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
                 if not any((x.embeds[0].author.url if len(x.embeds) > 0 else None) == reaction.message.jump_url for x in await kalm_moments.history().flatten()):
                     send_embed = discord.Embed(timestamp=reaction.message.created_at)
                     send_embed.set_author(
-                        name=reaction.message.author.display_name,
-                        url=reaction.message.jump_url,
-                        icon_url=reaction.message.author.avatar_url,
+                        reaction.message.author.display_name,
+                        reaction.message.jump_url,
+                        reaction.message.author.avatar_url,
                     )
                     send_embed.add_field(
-                        name=f"#{reaction.message.channel.name}",
-                        value=f"[{reaction.message.content}]({reaction.message.jump_url})",
-                        inline=False,
+                        f"#{reaction.message.channel.name}",
+                        f"[{reaction.message.content}]({reaction.message.jump_url})",
+                        False,
                     )
                     for x in reversed(reaction.message.attachments):
                         if x.filename.lower().endswith(
                             (".jpg", ".jpeg", ".png", ".gif", ".gifv")
                         ):
-                            send_embed.set_image(url=x.url)
+                            send_embed.set_image(x.url)
                     await kalm_moments.send(embed=send_embed)
                     message_embed = discord.Embed()
                     message_embed.set_author(
-                        name=client.user.name,
+                        client.user.name,
                         icon_url=client.user.avatar_url,
                     )
                     message_embed.add_field(
-                        name="📍",
-                        value=f"{(await first_pinner(reaction)).display_name} has pinned a [message]({reaction.message.jump_url}) to #{kalm_moments.name}.",
-                        inline=False,
+                        "📍",
+                        f"{(await first_pinner(reaction)).display_name} has pinned a [message]({reaction.message.jump_url}) to #{kalm_moments.name}.",
+                        False,
                     )
                     await reaction.message.channel.send(embed=message_embed)
             else:
@@ -267,9 +267,9 @@ async def add_replies_to_embed(embed: discord.Embed, message: discord.Message, d
     if message.reference:
         await add_replies_to_embed(embed, await channel.fetch_message(message.reference.message_id), depth+1, channel)
     embed.add_field(
-        name=message.author.display_name,
-        value=f"[{message.content}]({message.jump_url})",
-        inline=False,
+        message.author.display_name,
+        f"[{message.content}]({message.jump_url})",
+        False,
     )
 
 async def any_reaction_pinners(reaction: discord.Reaction) -> bool:
