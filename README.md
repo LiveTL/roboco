@@ -37,6 +37,8 @@ default prefix: `.rbc`
 
 `clip`(regular, clipper, contributor, donator, booster, sponsor): send request to clip video
 
+`bean`: bean a user
+
 `forcopy`: get role ids that are able to ping, for copying into set
 
 `help`: get help
