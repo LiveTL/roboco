@@ -136,6 +136,10 @@ async def on_oniichan(message: discord.Message, message_content: str):
     else:
         await message.channel.send("oi what you tryna do")
 
+@register_command("bean")
+async def on_bean(message: discord.Message, message_content: str):
+    await message.channel.send(f"{message_content[5:]} has been beaned")
+
 @register_command(None)
 async def on_default(message: discord.Message):
     await message.channel.send("syntax error")

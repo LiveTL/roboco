@@ -11,6 +11,7 @@ commands = {
     "channel": [],
     "clip": [],
     "onii-chan": [],
+    "bean": [],
     "help": [],
     None: [],
 }
