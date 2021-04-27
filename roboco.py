@@ -5,14 +5,18 @@ import re
 from typing import Dict, Set, Union, List
 
 import discord
+from discord_slash import SlashCommand, SlashContext
+from discord_slash.utils.manage_commands import create_option
 
 from util import *
 
 client = discord.Client(intents=discord.Intents.all())
 timestamp_match = re.compile(r'\d\d:\d\d:\d\d|\d\d:\d\d')
+slash = SlashCommand(client, sync_commands=True)
 kalm_moments: discord.TextChannel
 clip_request: discord.TextChannel
 nice_channel: discord.TextChannel
+slash_command_guilds = [808452876920946728]
 onii_chan: str
 help_file: str
 
@@ -30,10 +34,28 @@ def save_pin_roles(new_pin_roles):
     with open("roles.txt", "w") as fout:
         json.dump(list(pin_roles), fout)
 
+def add_pin_roles(new_pin_roles):
+    global pin_roles
+    pin_roles.add(new_pin_roles)
+    with open("roles.txt", "w") as fout:
+        json.dump(list(pin_roles), fout)
+
+def remove_pin_roles(new_pin_roles):
+    global pin_roles
+    pin_roles.remove(new_pin_roles)
+    with open("roles.txt", "w") as fout:
+        json.dump(list(pin_roles), fout)
+
 
 def save_invisible_channels(new_invisible):
     global invisible_channels
     invisible_channels = new_invisible
+    with open("channels.txt", "w") as fout:
+        json.dump(list(invisible_channels), fout)
+
+def add_invisible_channels(new_invisible):
+    global invisible_channels
+    invisible_channels.add(new_invisible)
     with open("channels.txt", "w") as fout:
         json.dump(list(invisible_channels), fout)
 
@@ -47,9 +69,9 @@ async def wait_delete(message: discord.Message, time = 1):
 async def on_ready():
     global kalm_moments, clip_request, nice_channel
     print("We have logged in as", client.user)
-    kalm_moments = client.get_channel(796900918901080085)
-    clip_request = client.get_channel(820547559319273473)
-    nice_channel = client.get_channel(829385883735556108)
+    kalm_moments = client.get_channel(836324616481669140)
+    clip_request = client.get_channel(836330447604023346)
+    nice_channel = client.get_channel(836330490809942016)
 
 
 @register_command("queryc")
@@ -59,6 +81,13 @@ async def on_queryc(message: discord.Message, message_content: str):
         + str([message.guild.get_channel(x).name for x in invisible_channels])
     )
 
+@slash.slash(name="queryc", guild_ids=slash_command_guilds)
+async def on_queryc(ctx):
+    await ctx.send(
+        "Channels the bot can't see: "
+        + str([ctx.message.guild.get_channel(x).name for x in invisible_channels])
+    )
+
 
 @register_command("query")
 async def on_query(message: discord.Message, message_content: str):
@@ -66,30 +95,112 @@ async def on_query(message: discord.Message, message_content: str):
         "Roles who can pin: " + str([message.guild.get_role(x).name for x in pin_roles])
     )
 
+@slash.slash(name="query", guild_ids=slash_command_guilds)
+async def on_query(ctx):
+    await ctx.send(
+        "Roles who can pin: " + str([ctx.message.guild.get_role(x).name for x in pin_roles])
+    )
+
 @register_command("help")
 async def on_help(message: discord.Message, message_content: str):
     await message.channel.send(f"{help_file}")
+
+@slash.slash(name="help", guild_ids=slash_command_guilds)
+async def on_help(ctx):
+    await ctx.send(f"{help_file}")
 
 @register_command("forcopy")
 async def on_forcopy(message: discord.Message, message_content: str):
     await message.channel.send(f"ids: {' '.join(map(str, pin_roles))}")
 
+@slash.slash(name="forcopy", guild_ids=slash_command_guilds)
+async def on_forcopy(ctx):
+    await ctx.send(f"ids: {' '.join(map(str, pin_roles))}")
 
-@register_command("pingset")
+@register_command("pinset")
 @needs_contributor
 async def on_pingset(message: discord.Message, message_content: str):
     save_pin_roles(
         {int("".join(filter(str.isdigit, x))) for x in message_content[9:].split(" ")}
     )
 
+@slash.slash(name="pinset",
+            description="Gives a role permission to pin messages. Requires the @Contributor role.",
+            options=[
+               create_option(
+                 name="role",
+                 description="The role that you want to add to the approved role list.",
+                 option_type=8,
+                   required=True
+               )
+             ], guild_ids=slash_command_guilds)
+async def on_pingset(ctx, role):
+    if await is_contributor(ctx.author):
+        add_pin_roles(role.id)
+        await ctx.send("Pin permission granted.")
+    else:
+        await ctx.send("This action required elevated privigales. Nice try tho.")
 
-@register_command("set")
+@slash.slash(name="pinremove",
+            description="Revokes a role's permission to pin messages. Requires the @Contributor role.",
+            options=[
+               create_option(
+                 name="role",
+                 description="The role that you want to remove from the approved role list.",
+                 option_type=8,
+                   required=True
+               )
+             ], guild_ids=slash_command_guilds)
+async def on_pingremove(ctx, role):
+    if await is_contributor(ctx.author):
+        remove_pin_roles(role.id)
+        await ctx.send("Pin permission removed.")
+    else:
+        await ctx.send("This action required elevated privigales. Nice try tho.")
+
+
+@register_command("pinsetid")
 @needs_contributor
 async def on_set(message: discord.Message, message_content: str):
     save_pin_roles({int(x) for x in message_content[4:].split(" ")})
 
 
-@register_command("channelm")
+@slash.slash(name="pinsetid",
+             description="Gives a role permission to pin messages. Uses the role's ID. Requires the @Contributor role.",
+             options=[
+                 create_option(
+                     name="roleId",
+                     description="The ID of role that you want to add to the approved role list.",
+                     option_type=3,
+                     required=True
+                 )
+             ], guild_ids=slash_command_guilds)
+async def on_set(ctx, roleid):
+    if await is_contributor(ctx.author):
+        add_pin_roles(int(roleid))
+        await ctx.send("Pin permission granted.")
+    else:
+        await ctx.send("This action required elevated privigales. Nice try tho.")
+
+@slash.slash(name="pinremoveid",
+             description="Removes a role's permission to pin messages. Uses the role's ID. Requires the @Contributor role.",
+             options=[
+                 create_option(
+                     name="roleId",
+                     description="The ID of role that you want to remove from the approved role list.",
+                     option_type=3,
+                     required=True
+                 )
+             ], guild_ids=slash_command_guilds)
+async def on_set(ctx, roleid):
+    if await is_contributor(ctx.author):
+        remove_pin_roles(int(roleid))
+        await ctx.send("Pin permission removed.")
+    else:
+        await ctx.send("This action required elevated privigales. Nice try tho.")
+
+
+@register_command("channelblock")
 @needs_contributor
 async def on_channelm(message: discord.Message, message_content: str):
     save_invisible_channels(
@@ -99,8 +210,41 @@ async def on_channelm(message: discord.Message, message_content: str):
         }
     )
 
+@slash.slash(name="channelblock",
+             description="Makes a channel invisible to the bot. Requires the @Contributor role.",
+             options=[
+                 create_option(
+                     name="channel",
+                     description="The channel you want to block.",
+                     option_type=7,
+                     required=True
+                 )
+             ], guild_ids=slash_command_guilds)
+async def on_channelm(ctx, channel):
+    if await is_contributor(ctx.author):
+        add_invisible_channels(channel.id)
+        await ctx.send("Added channel to the block list.")
+    else:
+        await ctx.send("This action required elevated privigales. Nice try tho.")
 
-@register_command("channel")
+@slash.slash(name="channelidblock",
+             description="Makes a channel invisible to the bot. Uses the channel's ID. Requires the @Contributor role.",
+             options=[
+                 create_option(
+                     name="channelid",
+                     description="The ID of the channel you want to block.",
+                     option_type=3,
+                     required=True
+                 )
+             ], guild_ids=slash_command_guilds)
+async def on_channelm(ctx, channelid):
+    if await is_contributor(ctx.author):
+        add_invisible_channels(int(channelid))
+        await ctx.send("Added channel to the block list.")
+    else:
+        await ctx.send("This action required elevated privigales. Nice try tho.")
+
+@register_command("channelidblock")
 @needs_contributor
 async def on_channel(message: discord.Message, message_content: str):
     save_invisible_channels(set(map(int, message_content[8:].split(" "))))
