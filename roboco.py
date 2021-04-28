@@ -75,9 +75,9 @@ async def wait_delete(message: discord.Message, time = 1):
 async def on_ready():
     global kalm_moments, clip_request, nice_channel
     print("We have logged in as", client.user)
-    kalm_moments = client.get_channel(836324616481669140)
-    clip_request = client.get_channel(836330447604023346)
-    nice_channel = client.get_channel(836330490809942016)
+    kalm_moments = client.get_channel(796900918901080085)
+    clip_request = client.get_channel(820547559319273473)
+    nice_channel = client.get_channel(829385883735556108)
 
 
 @register_command("queryc")
