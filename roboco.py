@@ -59,6 +59,12 @@ def add_invisible_channels(new_invisible):
     with open("channels.txt", "w") as fout:
         json.dump(list(invisible_channels), fout)
 
+def remove_invisible_channels(new_invisible):
+    global invisible_channels
+    invisible_channels.remove(new_invisible)
+    with open("channels.txt", "w") as fout:
+        json.dump(list(invisible_channels), fout)
+
 
 async def wait_delete(message: discord.Message, time = 1):
     await sleep(time)
@@ -81,11 +87,13 @@ async def on_queryc(message: discord.Message, message_content: str):
         + str([message.guild.get_channel(x).name for x in invisible_channels])
     )
 
-@slash.slash(name="queryc", guild_ids=slash_command_guilds)
-async def on_queryc(ctx):
+@slash.slash(name="queryc",
+             description="See list of channels invilible to the bot.",
+             guild_ids=slash_command_guilds)
+async def on_slash_queryc(ctx):
     await ctx.send(
         "Channels the bot can't see: "
-        + str([ctx.message.guild.get_channel(x).name for x in invisible_channels])
+        + str([ctx.guild.get_channel(x).name for x in invisible_channels])
     )
 
 
@@ -95,8 +103,10 @@ async def on_query(message: discord.Message, message_content: str):
         "Roles who can pin: " + str([message.guild.get_role(x).name for x in pin_roles])
     )
 
-@slash.slash(name="query", guild_ids=slash_command_guilds)
-async def on_query(ctx):
+@slash.slash(name="query",
+             description="See list of roles that are able to pin messages.",
+             guild_ids=slash_command_guilds)
+async def on_slash_query(ctx):
     await ctx.send(
         "Roles who can pin: " + str([ctx.message.guild.get_role(x).name for x in pin_roles])
     )
@@ -105,16 +115,20 @@ async def on_query(ctx):
 async def on_help(message: discord.Message, message_content: str):
     await message.channel.send(f"{help_file}")
 
-@slash.slash(name="help", guild_ids=slash_command_guilds)
-async def on_help(ctx):
+@slash.slash(name="help",
+             description="Take your best guess.",
+             guild_ids=slash_command_guilds)
+async def on_slash_help(ctx):
     await ctx.send(f"{help_file}")
 
 @register_command("forcopy")
 async def on_forcopy(message: discord.Message, message_content: str):
     await message.channel.send(f"ids: {' '.join(map(str, pin_roles))}")
 
-@slash.slash(name="forcopy", guild_ids=slash_command_guilds)
-async def on_forcopy(ctx):
+@slash.slash(name="forcopy",
+             description="Get role ids that are able to ping, for copying into a set.",
+             guild_ids=slash_command_guilds)
+async def on_slash_forcopy(ctx):
     await ctx.send(f"ids: {' '.join(map(str, pin_roles))}")
 
 @register_command("pinset")
@@ -134,7 +148,7 @@ async def on_pingset(message: discord.Message, message_content: str):
                    required=True
                )
              ], guild_ids=slash_command_guilds)
-async def on_pingset(ctx, role):
+async def on_slash_pingset(ctx, role):
     if await is_contributor(ctx.author):
         add_pin_roles(role.id)
         await ctx.send("Pin permission granted.")
@@ -151,7 +165,7 @@ async def on_pingset(ctx, role):
                    required=True
                )
              ], guild_ids=slash_command_guilds)
-async def on_pingremove(ctx, role):
+async def on_slash_pingremove(ctx, role):
     if await is_contributor(ctx.author):
         remove_pin_roles(role.id)
         await ctx.send("Pin permission removed.")
@@ -175,7 +189,7 @@ async def on_set(message: discord.Message, message_content: str):
                      required=True
                  )
              ], guild_ids=slash_command_guilds)
-async def on_set(ctx, roleid):
+async def on_slash_set(ctx, roleid):
     if await is_contributor(ctx.author):
         add_pin_roles(int(roleid))
         await ctx.send("Pin permission granted.")
@@ -192,7 +206,7 @@ async def on_set(ctx, roleid):
                      required=True
                  )
              ], guild_ids=slash_command_guilds)
-async def on_set(ctx, roleid):
+async def on_slash_remove(ctx, roleid):
     if await is_contributor(ctx.author):
         remove_pin_roles(int(roleid))
         await ctx.send("Pin permission removed.")
@@ -220,12 +234,30 @@ async def on_channelm(message: discord.Message, message_content: str):
                      required=True
                  )
              ], guild_ids=slash_command_guilds)
-async def on_channelm(ctx, channel):
+async def on_slash_channelm(ctx, channel):
     if await is_contributor(ctx.author):
         add_invisible_channels(channel.id)
         await ctx.send("Added channel to the block list.")
     else:
         await ctx.send("This action required elevated privigales. Nice try tho.")
+
+@slash.slash(name="channelunblock",
+             description="Makes an invisible channel vilible again to the bot. Requires the @Contributor role.",
+             options=[
+                 create_option(
+                     name="channel",
+                     description="The channel you want to unblock.",
+                     option_type=7,
+                     required=True
+                 )
+             ], guild_ids=slash_command_guilds)
+async def on_slash_rm_channelm(ctx, channel):
+    if await is_contributor(ctx.author):
+        remove_invisible_channels(channel.id)
+        await ctx.send("Removed channel from the block list.")
+    else:
+        await ctx.send("This action required elevated privigales. Nice try tho.")
+
 
 @slash.slash(name="channelidblock",
              description="Makes a channel invisible to the bot. Uses the channel's ID. Requires the @Contributor role.",
@@ -237,12 +269,30 @@ async def on_channelm(ctx, channel):
                      required=True
                  )
              ], guild_ids=slash_command_guilds)
-async def on_channelm(ctx, channelid):
+async def on_slash_rm_channel(ctx, channelid):
     if await is_contributor(ctx.author):
         add_invisible_channels(int(channelid))
         await ctx.send("Added channel to the block list.")
     else:
         await ctx.send("This action required elevated privigales. Nice try tho.")
+
+@slash.slash(name="channelidunblock",
+             description="Makes an invisible channel vilible again to the bot, uses ID. Requires the @Contributor role.",
+             options=[
+                 create_option(
+                     name="channel",
+                     description="The id of the channel you want to unblock.",
+                     option_type=7,
+                     required=True
+                 )
+             ], guild_ids=slash_command_guilds)
+async def on_slash_rm_channel(ctx, channel):
+    if await is_contributor(ctx.author):
+        remove_invisible_channels(int(channelid))
+        await ctx.send("Removed channel from the block list.")
+    else:
+        await ctx.send("This action required elevated privigales. Nice try tho.")
+
 
 @register_command("channelidblock")
 @needs_contributor
@@ -264,6 +314,37 @@ async def on_clip(message: discord.Message, message_content: str):
             send_message_content += "\nbecause " + ' '.join(x for x in things)
     await clip_request.send(send_message_content)
 
+@slash.slash(name="clip",
+             description="Sends a clip request to the LiveTL clipping team.",
+             options=[
+                 create_option(
+                     name="video",
+                     description="A link to the original stream.",
+                     option_type=3,
+                     required=True
+                 ),
+                 create_option(
+                     name="clipreason",
+                     description="A reason for clipping and additional comments.",
+                     option_type=3,
+                     required=True
+                 ),
+                 create_option(
+                     name="timestamp",
+                     description="A timestamp where the clip begins.",
+                     option_type=3,
+                     required=False
+                 )
+             ],
+             guild_ids=slash_command_guilds)
+async def on_slash_clip(ctx, video, timestamp, clipreason):
+    send_message_content = f"Request from {ctx.author.mention} to clip {video} "
+    if timestamp_match.match(timestamp):
+        send_message_content += f"at timestamp {timestamp} "
+    send_message_content += f"\nbecause {clipreason}"
+    await clip_request.send(send_message_content)
+    await ctx.send("Consider it done.")
+
 @register_command("onii-chan")
 async def on_oniichan(message: discord.Message, message_content: str):
     if message.channel.is_nsfw():
@@ -271,9 +352,33 @@ async def on_oniichan(message: discord.Message, message_content: str):
     else:
         await message.channel.send("oi what you tryna do")
 
+@slash.slash(name="onii-chan",
+             description="O-onii-chan...",
+             guild_ids=slash_command_guilds)
+async def on_slash_oniichan(ctx):
+    if ctx.channel.is_nsfw():
+        await ctx.send(onii_chan)
+    else:
+        await ctx.send("oi what you tryna do")
+
 @register_command("bean")
 async def on_bean(message: discord.Message, message_content: str):
     await message.channel.send(f"{message_content[5:]} has been beaned")
+
+@slash.slash(name="bean",
+             description="Beans a user.",
+             options=[
+                 create_option(
+                     name="user",
+                     description="The user you wish to bean.",
+                     option_type=6,
+                     required=True
+                 )
+             ],
+             guild_ids=slash_command_guilds)
+async def on_slash_bean(ctx, user):
+    await ctx.send(f"{user.mention} has been beaned.")
+
 
 @register_command(None)
 async def on_default(message: discord.Message):
