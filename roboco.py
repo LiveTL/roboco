@@ -108,7 +108,7 @@ async def on_query(message: discord.Message, message_content: str):
              guild_ids=slash_command_guilds)
 async def on_slash_query(ctx):
     await ctx.send(
-        "Roles who can pin: " + str([ctx.message.guild.get_role(x).name for x in pin_roles])
+        "Roles who can pin: " + str([ctx.guild.get_role(x).name for x in pin_roles])
     )
 
 @register_command("help")
