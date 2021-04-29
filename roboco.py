@@ -337,7 +337,7 @@ async def on_clip(message: discord.Message, message_content: str):
                  )
              ],
              guild_ids=slash_command_guilds)
-async def on_slash_clip(ctx, video, timestamp, clipreason):
+async def on_slash_clip(ctx, video, timestamp="none", clipreason):
     send_message_content = f"Request from {ctx.author.mention} to clip {video} "
     if timestamp_match.match(timestamp):
         send_message_content += f"at timestamp {timestamp} "
