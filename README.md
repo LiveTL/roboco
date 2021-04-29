@@ -31,9 +31,9 @@ react with the pin emoji (📌)
 
 default prefix: `.rbc`
 
-`channel`(contributor): set blacklisted channels with ids seperated by spaces
+`channelidblock`(contributor): set blacklisted channels with ids seperated by spaces
 
-`channelm`(contributor): set blacklisted channels with mentions
+`channelblock`(contributor): set blacklisted channels with mentions
 
 `clip`(regular, clipper, contributor, donator, booster, sponsor): send request to clip video
 
@@ -43,10 +43,10 @@ default prefix: `.rbc`
 
 `help`: get help
 
-`pingset`(contributor): same as set but with role mentions instead of role ids
+`pinset`(contributor): same as set but with role mentions instead of role ids
 
 `query`: see list of roles that are able to ping
 
 `queryc`: see list of blacklisted channels
 
-`set`(contributor): set roles that are able to ping, with ids, seperated by spaces
+`pinsetid`(contributor): set roles that are able to ping, with ids, seperated by spaces
