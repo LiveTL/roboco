@@ -16,7 +16,7 @@ slash = SlashCommand(client, sync_commands=True)
 kalm_moments: discord.TextChannel
 clip_request: discord.TextChannel
 nice_channel: discord.TextChannel
-slash_command_guilds = [808452876920946728]
+slash_command_guilds = [780938154437640232]
 onii_chan: str
 help_file: str
 
