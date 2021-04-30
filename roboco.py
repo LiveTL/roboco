@@ -242,7 +242,7 @@ async def on_slash_channelm(ctx, channel):
         await ctx.send("This action required elevated privigales. Nice try tho.")
 
 @slash.slash(name="channelunblock",
-             description="Makes an invisible channel vilible again to the bot. Requires the @Contributor role.",
+             description="Makes an invisible channel visible again to the bot. Requires the @Contributor role.",
              options=[
                  create_option(
                      name="channel",
@@ -277,7 +277,7 @@ async def on_slash_rm_channel(ctx, channelid):
         await ctx.send("This action required elevated privigales. Nice try tho.")
 
 @slash.slash(name="channelidunblock",
-             description="Makes an invisible channel vilible again to the bot, uses ID. Requires the @Contributor role.",
+             description="Makes an invisible channel visible again to the bot, uses ID. Requires the @Contributor role.",
              options=[
                  create_option(
                      name="channel",
