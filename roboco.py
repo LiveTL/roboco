@@ -280,13 +280,13 @@ async def on_slash_rm_channel(ctx, channelid):
              description="Makes an invisible channel visible again to the bot, uses ID. Requires the @Contributor role.",
              options=[
                  create_option(
-                     name="channel",
+                     name="channelid",
                      description="The id of the channel you want to unblock.",
                      option_type=7,
                      required=True
                  )
              ], guild_ids=slash_command_guilds)
-async def on_slash_rm_channel(ctx, channel):
+async def on_slash_id_rm_channel(ctx, channelid):
     if await is_contributor(ctx.author):
         remove_invisible_channels(int(channelid))
         await ctx.send("Removed channel from the block list.")
