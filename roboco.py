@@ -9,7 +9,7 @@ import discord_slash
 
 from util import *
 
-client = discord.Client(intents=discord.Intents.all())
+client = discord.Client(intents=discord.Intents.all(), activity=discord.Activity(type=discord.ActivityType.custom, name='send all complaints to yoyoyonono#5582'))
 timestamp_match = re.compile(r'\d\d:\d\d:\d\d|\d\d:\d\d')
 slash = discord_slash.SlashCommand(client, sync_commands=True)
 kalm_moments: discord.TextChannel
