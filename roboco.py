@@ -15,7 +15,7 @@ slash = discord_slash.SlashCommand(client, sync_commands=True)
 kalm_moments: discord.TextChannel
 clip_request: discord.TextChannel
 nice_channel: discord.TextChannel
-slash_command_guilds = [780938154437640232]
+slash_command_guilds = [808452876920946728]
 onii_chan: str
 help_file: str
 
@@ -74,9 +74,9 @@ async def wait_delete(message: discord.Message, time: float = 1):
 async def on_ready():
     global kalm_moments, clip_request, nice_channel
     print("We have logged in as", client.user)
-    kalm_moments = client.get_channel(796900918901080085)
-    clip_request = client.get_channel(820547559319273473)
-    nice_channel = client.get_channel(829385883735556108)
+    kalm_moments = client.get_channel(836324616481669140)
+    clip_request = client.get_channel(836330447604023346)
+    nice_channel = client.get_channel(836330490809942016)
 
 
 @register_command("queryc")
@@ -377,6 +377,39 @@ async def on_bean(message: discord.Message, message_content: str):
              guild_ids=slash_command_guilds)
 async def on_slash_bean(ctx: discord_slash.SlashContext, user: discord.User):
     await ctx.send(f"{user.mention} has been beaned.")
+
+
+@slash.slash(name="faq", description="Puts the FAQ in the chat.",
+             options=[
+                 discord_slash.utils.manage_commands.create_option(
+                     name="faq_number",
+                     description="The number of a spesfic question you want to send.",
+                     option_type=4,
+                     required=False
+                 )
+             ],
+             guild_ids=slash_command_guilds)
+async def on_slash_faq(ctx: discord_slash.SlashContext, faq_number: Optional[int] = None):
+    embed = discord.Embed(title="Frequently Asked Questions")
+    if (faq_number > 7):
+        await ctx.send("That's not a valid FAQ number! I'll go on and send them all anyway.")
+        faq_number=None
+    if (faq_number==1 or faq_number==None):
+        embed.add_field(name="How does LiveTL work?", value="LiveTL is, at its core, a chat filter for YouTube streams. It helps foreign viewers better catch translations that other viewers are providing in the live chat. LiveTL does not automatically translate streams – instead, it picks up translations found in the chat.")
+    if (faq_number==2 or faq_number==None):
+        embed.add_field(name="I opened my stream with LiveTL but it isn’t loading.", value="The stream chat may be temporarily unavailable. LiveTL will only load if the stream has a valid live chat or chat replay.")
+    if (faq_number==3 or faq_number==None):
+        embed.add_field(name="I don’t see any translations in the translations panel.", value="If there are no translators in chat, LiveTL is unable to provide translations. Any messages properly tagged with a language (ex. [en], ESP:, etc.) will appear when they are available.")
+    if (faq_number==4 or faq_number==None):
+        embed.add_field(name="A translator is using their own style of language tags.", value="You can manually select additional users to filter in the settings.")
+    if (faq_number==5 or faq_number==None):
+        embed.add_field(name="The YouTube video isn’t loading in Firefox.", value="Allowing video and audio autoplay in Firefox’s website preferences usually fixes this problem.")
+    if (faq_number==6 or faq_number==None):
+        embed.add_field(name="Im having an issue not mentioned here.", value="A reinstall of the extension fixes most issues. After that, ask in #tech-support and someone will help you.")
+    if (faq_number==7 or faq_number==None):
+        embed.add_field(name="Where is the best place to report a bug or suggest a feature?", value="The best place to report bugs/suggest Features for LiveTL is our GitHub. You can find a list of all out platforms at https://github.com/LiveTL. Simply choose a platform, click on the issues tab, and fill out the form.")
+    await ctx.send(embed=embed)
+
 
 
 @register_command(None)
