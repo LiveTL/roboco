@@ -2,6 +2,7 @@ import asyncio
 from asyncio.tasks import sleep
 import json
 import re
+import ytthings
 from typing import Dict, Set, Union, List
 
 import discord
@@ -15,7 +16,7 @@ slash = discord_slash.SlashCommand(client, sync_commands=True)
 kalm_moments: discord.TextChannel
 clip_request: discord.TextChannel
 nice_channel: discord.TextChannel
-slash_command_guilds = [780938154437640232]
+slash_command_guilds = [780938154437640232, 331172263800078339]
 onii_chan: str
 help_file: str
 
@@ -390,23 +391,24 @@ async def on_slash_bean(ctx: discord_slash.SlashContext, user: discord.User):
              ],
              guild_ids=slash_command_guilds)
 async def on_slash_faq(ctx: discord_slash.SlashContext, faq_number: Optional[int] = None):
+    faq_number = int(faq_number) if faq_number is not None else None
     embed = discord.Embed(title="Frequently Asked Questions")
-    if (faq_number > 7):
+    if (faq_number != None and faq_number > 7):
         await ctx.send("That's not a valid FAQ number! I'll go on and send them all anyway.")
         faq_number=None
-    if (faq_number==1 or faq_number==None):
-        embed.add_field(name="How does LiveTL work?", value="LiveTL is, at its core, a chat filter for YouTube streams. It helps foreign viewers better catch translations that other viewers are providing in the live chat. LiveTL does not automatically translate streams – instead, it picks up translations found in the chat.")
-    if (faq_number==2 or faq_number==None):
+    if (faq_number==None or faq_number==1):
+        embed.add_field(name="How does LiveTL work?", value="LiveTL is, at its core, a chat filter for YouTube streams. It helps foreign viewers better catch translations that other viewers are providing in the live chat. LiveTL does not automatically translate streams – instead, it picks up translations found in the chat.") 
+    if (faq_number==None or faq_number==2):
         embed.add_field(name="I opened my stream with LiveTL but it isn’t loading.", value="The stream chat may be temporarily unavailable. LiveTL will only load if the stream has a valid live chat or chat replay.")
-    if (faq_number==3 or faq_number==None):
+    if (faq_number==None or faq_number==3):
         embed.add_field(name="I don’t see any translations in the translations panel.", value="If there are no translators in chat, LiveTL is unable to provide translations. Any messages properly tagged with a language (ex. [en], ESP:, etc.) will appear when they are available.")
-    if (faq_number==4 or faq_number==None):
+    if (faq_number==None or faq_number==4):
         embed.add_field(name="A translator is using their own style of language tags.", value="You can manually select additional users to filter in the settings.")
-    if (faq_number==5 or faq_number==None):
+    if (faq_number==None or faq_number==5):
         embed.add_field(name="The YouTube video isn’t loading in Firefox.", value="Allowing video and audio autoplay in Firefox’s website preferences usually fixes this problem.")
-    if (faq_number==6 or faq_number==None):
+    if (faq_number==None or faq_number==6):
         embed.add_field(name="Im having an issue not mentioned here.", value="A reinstall of the extension fixes most issues. After that, ask in #tech-support and someone will help you.")
-    if (faq_number==7 or faq_number==None):
+    if (faq_number==None or faq_number==7):
         embed.add_field(name="Where is the best place to report a bug or suggest a feature?", value="The best place to report bugs/suggest Features for LiveTL is our GitHub. You can find a list of all out platforms at https://github.com/LiveTL. Simply choose a platform, click on the issues tab, and fill out the form.")
     await ctx.send(embed=embed)
 
@@ -422,7 +424,11 @@ async def on_message(message: discord.Message):
     if (message.channel.id == nice_channel.id):
         if message.content.lower() not in ['', 'nice']:
             await wait_delete(message)
-        return
+        return    
+    if len(yt_links := ytthings.get_youtube_links_from_list(ytthings.get_links_from_string(message.content))) > 0:
+        yt_links = ytthings.convert_youtube_links_to_format(yt_links)
+        if any(ytthings.get_channel_link_from_link(link) == 'https://www.youtube.com/c/OtakMoriTranslationsVTubers' for link in yt_links):
+            await message.reply('otakmore is an arse just don\'t')
     if (
         message.author == client.user
         or message.channel.id in invisible_channels
