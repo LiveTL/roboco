@@ -1,0 +1,5 @@
+discord_py_slash_command==1.1.2
+urlextract==1.4.0
+discord.py==1.6.0
+discord==1.7.3
+python-oembed==0.1.2
