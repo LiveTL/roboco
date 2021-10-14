@@ -404,6 +404,7 @@ async def on_slash_faq(ctx: discord_slash.SlashContext, faq_number: Optional[int
     faq_number = int(faq_number) if faq_number is not None else None
     embed = discord.Embed(title="Frequently Asked Questions")
     if not faq_number or faq_number < 1 or faq_number > len(FAQ):
+        await ctx.send("That's not a valid FAQ number! I'll go on and send them all anyway.")
         for x in FAQ:
             embed.add_field(name=x[0], value=x[1])
     else:
