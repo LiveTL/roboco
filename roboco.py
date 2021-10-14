@@ -3,7 +3,7 @@ from asyncio.tasks import sleep
 import json
 import re
 import ytthings
-from typing import Dict, Set, Union, List
+from typing import Dict, Set, Tuple, Union, List
 
 import discord
 import discord_slash
@@ -19,6 +19,16 @@ nice_channel: discord.TextChannel
 slash_command_guilds = [780938154437640232, 331172263800078339]
 onii_chan: str
 help_file: str
+FAQ: List[Tuple[str, str]] = [
+    ('How does LiveTL Work?', 'LiveTL is, at its core, a chat filter for YouTube streams. It helps foreign viewers better catch translations that other viewers are providing in the live chat. LiveTL does not automatically translate streams – instead, it picks up translations found in the chat.'),
+    ('I opened my stream with LiveTL but it isn’t loading.', 'The stream chat may be temporarily unavailable. LiveTL will only load if the stream has a valid live chat or chat replay.'),
+    ("I don't see any translations in the translations panel.", 'If there are no translators in chat, LiveTL is unable to provide translations. Any messages properly taggedwith a language (ex. [en], ESP:, etc.) will appear when they are available.'),
+    ("A translator is using their own style of language tags.", "You can manually select additional users to filter in the settings."),
+    ("The YouTube video isn’t loading in Firefox.", "Allowing video and audio autoplay in Firefox’s website preferences usually fixes this problem."),
+    ("I'm having an issue not mentioned here.", "A reinstall of the extension fixes most issues. After that, ask in #tech-support and someone will help you."),
+    ("Where is the best place to report a bug or suggest a feature?", "The best place to report bugs/suggest Features for LiveTL is our GitHub. You can find a list of all out platforms at https://github.com/LiveTL. Simply choose a platform, click on the issues tab, and fill out the form.")
+]
+
 
 with open("README.md", "r") as fin:
     help_file_list = fin.read().splitlines()
@@ -393,23 +403,11 @@ async def on_slash_bean(ctx: discord_slash.SlashContext, user: discord.User):
 async def on_slash_faq(ctx: discord_slash.SlashContext, faq_number: Optional[int] = None):
     faq_number = int(faq_number) if faq_number is not None else None
     embed = discord.Embed(title="Frequently Asked Questions")
-    if (faq_number != None and faq_number > 7):
-        await ctx.send("That's not a valid FAQ number! I'll go on and send them all anyway.")
-        faq_number=None
-    if (faq_number==None or faq_number==1):
-        embed.add_field(name="How does LiveTL work?", value="LiveTL is, at its core, a chat filter for YouTube streams. It helps foreign viewers better catch translations that other viewers are providing in the live chat. LiveTL does not automatically translate streams – instead, it picks up translations found in the chat.") 
-    if (faq_number==None or faq_number==2):
-        embed.add_field(name="I opened my stream with LiveTL but it isn’t loading.", value="The stream chat may be temporarily unavailable. LiveTL will only load if the stream has a valid live chat or chat replay.")
-    if (faq_number==None or faq_number==3):
-        embed.add_field(name="I don’t see any translations in the translations panel.", value="If there are no translators in chat, LiveTL is unable to provide translations. Any messages properly tagged with a language (ex. [en], ESP:, etc.) will appear when they are available.")
-    if (faq_number==None or faq_number==4):
-        embed.add_field(name="A translator is using their own style of language tags.", value="You can manually select additional users to filter in the settings.")
-    if (faq_number==None or faq_number==5):
-        embed.add_field(name="The YouTube video isn’t loading in Firefox.", value="Allowing video and audio autoplay in Firefox’s website preferences usually fixes this problem.")
-    if (faq_number==None or faq_number==6):
-        embed.add_field(name="Im having an issue not mentioned here.", value="A reinstall of the extension fixes most issues. After that, ask in #tech-support and someone will help you.")
-    if (faq_number==None or faq_number==7):
-        embed.add_field(name="Where is the best place to report a bug or suggest a feature?", value="The best place to report bugs/suggest Features for LiveTL is our GitHub. You can find a list of all out platforms at https://github.com/LiveTL. Simply choose a platform, click on the issues tab, and fill out the form.")
+    if not faq_number:
+        for x in FAQ:
+            embed.add_field(name=x[0], value=x[1])
+    else:
+        embed.add_field(name=FAQ[faq_number - 1][0], value=FAQ[faq_number - 1][1])    
     await ctx.send(embed=embed)
 
 
