@@ -6,3 +6,4 @@ python-oembed==0.2.4
 langdetect==1.0.9
 PyNaCl==1.4.0
 gTTs==2.2.3
+sseclient==0.0.27
