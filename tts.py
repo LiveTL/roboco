@@ -5,7 +5,12 @@ import langdetect
 UNIX_EPOCH = datetime.datetime.utcfromtimestamp(0)
 
 def tts(text):
-    message = gTTS(text=text, lang=langdetect.detect(text)) 
+    langs = langdetect.detect_langs(text)
+    for x in langs:
+        try:
+            message = gTTS(text=text, lang=x.lang)
+        except ValueError: 
+            continue
     filename = f'tts/{(datetime.datetime.utcnow() - UNIX_EPOCH).total_seconds() * 1000:.0f}.mp3' 
     message.save(filename) 
     return filename

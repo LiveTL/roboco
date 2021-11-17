@@ -2,7 +2,10 @@ import asyncio
 from asyncio.tasks import sleep
 import json
 import re
+from tts import tts
 import ytthings
+import os
+from mchad import *
 from typing import Dict, Set, Tuple, Union, List
 
 import discord
@@ -411,7 +414,81 @@ async def on_slash_faq(ctx: discord_slash.SlashContext, faq_number: Optional[int
         embed.add_field(name=FAQ[faq_number - 1][0], value=FAQ[faq_number - 1][1])    
     await ctx.send(embed=embed)
 
+@slash.slash(name="join", description="Joins the voice channel.",
+             guild_ids=slash_command_guilds)
+async def on_slash_join(ctx: discord_slash.SlashContext):
+    if ctx.author.voice is None:
+        await ctx.send("You're not in a voice channel.")
+    else:
+        await ctx.author.voice.channel.connect()
+        await ctx.send("Joined the voice channel.")
 
+@slash.slash(name="leave", description="Leaves the voice channel.",
+             guild_ids=slash_command_guilds)
+async def on_slash_leave(ctx: discord_slash.SlashContext):
+    if ctx.author.voice is None:
+        await ctx.send("You're not in a voice channel.")
+    elif ctx.guild.voice_client is None:
+        await ctx.send("I'm not in a voice channel.")
+    elif ctx.guild.voice_client.channel == ctx.author.voice.channel:
+        await ctx.guild.voice_client.disconnect()
+        await ctx.send("Left the voice channel.")
+    else:
+        await ctx.send("I'm not in that voice channel.")
+
+@slash.slash(name="say", description="Says something in the voice chat.",
+             options=[
+                 discord_slash.utils.manage_commands.create_option(
+                        name="message",
+                        description="The message you want to say.",
+                        option_type=3,
+                        required=True
+                 ),
+                ],
+                guild_ids=slash_command_guilds
+            )
+async def on_slash_say(ctx: discord_slash.SlashContext, message: str):
+    if ctx.author.voice is None:
+        await ctx.send("You're not in a voice channel.")
+    elif ctx.guild.voice_client is None:
+        await ctx.send("I'm not in a voice channel.")
+    elif ctx.guild.voice_client.channel == ctx.author.voice.channel:
+        with open(tts(message)) as f:
+            ctx.guild.voice_client.play(discord.FFmpegPCMAudio(f, pipe=True))
+        await ctx.send(f'said {message}')
+        while ctx.guild.voice_client.is_playing():
+            await asyncio.sleep(1)
+        os.remove(f.name)
+
+@slash.slash(name="mchadvoice", description="Mchad live text in the voice channel.",
+             options=[
+                 discord_slash.utils.manage_commands.create_option(
+                        name="link",
+                        description="Youtube link for the stream",
+                        option_type=3,
+                        required=True
+                 )
+             ],
+             guild_ids=slash_command_guilds
+        )
+async def on_slash_mchadvoice(ctx: discord_slash.SlashContext, link: str):
+    if ctx.author.voice is None:
+        await ctx.send("You're not in a voice channel.")
+    elif ctx.guild.voice_client is None:
+        await ctx.send("I'm not in a voice channel.")
+    elif ctx.guild.voice_client.channel == ctx.author.voice.channel:
+        await ctx.send("Starting mchad live")
+        try:
+            room = roomGeneratorbyID(video_id(link))
+        except:
+            await ctx.send("Mchad room not found")
+            return
+        for x in room:
+            with open(tts(x)) as f:
+                ctx.guild.voice_client.play(discord.FFmpegPCMAudio(f, pipe=True))
+            while ctx.guild.voice_client.is_playing():
+                await asyncio.sleep(1)
+            os.remove(f.name)
 
 @register_command(None)
 async def on_default(message: discord.Message):
@@ -448,7 +525,6 @@ async def on_message(message: discord.Message):
 @client.event
 async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
     global kalm_moments
-    print(reaction.emoji)
     if reaction.emoji == "📌":
         if not reaction.message.channel.is_nsfw():
             if await any_reaction_pinners(reaction):
