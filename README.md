@@ -31,22 +31,40 @@ react with the pin emoji (📌)
 
 default prefix: `.rbc`
 
-`channelidblock`(contributor): set blacklisted channels with ids seperated by spaces
+`bean`: bean a user
 
 `channelblock`(contributor): set blacklisted channels with mentions
 
-`clip`(regular, clipper, contributor, donator, booster, sponsor): send request to clip video
+`channelidblock`(contributor): set blacklisted channels with ids seperated by spaces
 
-`bean`: bean a user
+`channelidunblock`(contributor): unblock a channel with id
+
+`channelunblock`(contributor): unblock a channel with mention
+
+`clip`(regular, clipper, contributor, donator, booster, sponsor): send request to clip video
 
 `forcopy`: get role ids that are able to ping, for copying into set
 
 `help`: get help
 
+`join`: join a voice channel
+
+`leave`: leave a voice channel
+
+`mchadvoice`: Mchad live text in the voice channel
+
+`onii-chan`: just don't
+
+`pinremove`(contributor): Remove a roles' permission to pin
+
+`pinremoveid`(contributor): Remove a roles' permission to pin, with id
+
 `pinset`(contributor): same as set but with role mentions instead of role ids
+
+`pinsetid`(contributor): set roles that are able to ping, with ids, seperated by spaces
 
 `query`: see list of roles that are able to ping
 
 `queryc`: see list of blacklisted channels
 
-`pinsetid`(contributor): set roles that are able to ping, with ids, seperated by spaces
+`say`: say something in voice chat
