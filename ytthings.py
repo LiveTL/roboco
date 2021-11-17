@@ -5,7 +5,7 @@ import oembed
 import urlextract
 extractor = urlextract.URLExtract()
 consumer = oembed.OEmbedConsumer()
-endpoint = oembed.OEmbedEndpoint('https://www.youtube.com/oembed/', ['*.youtube.com/*', 'youtu.be/*', 'youtube.com/*'])
+endpoint = oembed.OEmbedEndpoint('https://www.youtube.com/oembed/', ['*.youtube.com/*', 'youtu.be/*', '*youtube.com/*'])
 consumer.addEndpoint(endpoint)
 
 def get_links_from_string(string: str) -> List[str]:
