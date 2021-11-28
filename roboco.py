@@ -373,6 +373,12 @@ async def on_slash_oniichan(ctx: discord_slash.SlashContext):
         await ctx.send(onii_chan)
     else:
         await ctx.send("oi what you tryna do")
+    if ctx.guild.voice_client.channel == ctx.author.voice.channel:
+        with open(tts(onii_chan)) as f:
+            ctx.guild.voice_client.play(discord.FFmpegPCMAudio(f, pipe=True))
+        while (ctx.guild.voice_client is not None) and ctx.guild.voice_client.is_playing():
+            await asyncio.sleep(1)
+        os.remove(f.name)
 
 @register_command("bean")
 async def on_bean(message: discord.Message, message_content: str):
@@ -456,7 +462,7 @@ async def on_slash_say(ctx: discord_slash.SlashContext, message: str):
         with open(tts(message)) as f:
             ctx.guild.voice_client.play(discord.FFmpegPCMAudio(f, pipe=True))
         await ctx.send(f'said {message}')
-        while ctx.guild.voice_client.is_playing():
+        while (ctx.guild.voice_client is not None) and ctx.guild.voice_client.is_playing():
             await asyncio.sleep(1)
         os.remove(f.name)
 
