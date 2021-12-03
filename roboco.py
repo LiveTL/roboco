@@ -3,8 +3,10 @@ from asyncio.tasks import sleep
 import json
 import re
 from tts import tts
+import pytchat as pyt
 import ytthings
 import os
+from filter import parseTranslation
 from mchad import *
 from typing import Dict, Set, Tuple, Union, List
 
@@ -490,11 +492,62 @@ async def on_slash_mchadvoice(ctx: discord_slash.SlashContext, link: str):
             await ctx.send("Mchad room not found")
             return
         for x in room:
+            if ctx.guild.voice_client is None:
+                return
             with open(tts(x)) as f:
                 ctx.guild.voice_client.play(discord.FFmpegPCMAudio(f, pipe=True))
-            while ctx.guild.voice_client.is_playing():
+            while ctx.guild.voice_client is not None and ctx.guild.voice_client.is_playing():
                 await asyncio.sleep(1)
             os.remove(f.name)
+
+@slash.slash(name="livetlstream", description="LiveTL-style filtered chat",
+             options=[
+                 discord_slash.utils.manage_commands.create_option(
+                        name="link",
+                        description="Youtube link for the stream",
+                        option_type=3,
+                        required=True
+                 ),
+                 discord_slash.utils.manage_commands.create_option(
+                        name="filterlang",
+                        description="Language you want to filter",
+                        option_type=3,
+                        required=False
+                 )],
+                 guild_ids=slash_command_guilds
+        )
+async def on_slash_livetlstream(ctx: discord_slash.SlashContext, link: str, filterlang: str = None):
+    if ctx.author.voice is None:
+        await ctx.send("You're not in a voice channel.")
+    elif ctx.guild.voice_client is None:
+        await ctx.send("I'm not in a voice channel.")
+    elif ctx.guild.voice_client.channel == ctx.author.voice.channel:
+        id_index = -1
+        if 'youtube.com' in link:
+            id_index = link.find('v=') + 2
+        elif 'youtu.be' in link:
+            id_index = link.find('/') + 1
+        if id_index == -1:
+            await ctx.send("Invalid link")
+            return
+        await ctx.send("Starting livetl stream")
+        try:
+            room = pyt.create(video_id=link[id_index:id_index+11])
+        except:
+            await ctx.send("Not Live")
+            return
+        while room.is_alive():
+            for x in room.get().sync_items():
+                if ctx.guild.voice_client.channel is None:
+                    return
+                if (the_real_message := parseTranslation(x)) is not None:
+                    if filterlang is None or filterlang.lower() in the_real_message[0].lower():
+                        with open(tts(the_real_message[1])) as f:
+                            ctx.guild.voice_client.play(discord.FFmpegPCMAudio(f, pipe=True))
+                        while ctx.guild.voice_client and ctx.guild.voice_client.is_playing():
+                            await asyncio.sleep(1)
+                        os.remove(f.name)
+        return
 
 @register_command(None)
 async def on_default(message: discord.Message):
